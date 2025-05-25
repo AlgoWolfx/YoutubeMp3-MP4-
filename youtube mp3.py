@@ -272,7 +272,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
     def init_ui(self):
         # Pencere ayarları
         self.setWindowTitle('YouTube Video/Ses İndirici')
-        self.setFixedSize(480, 400)  # Biraz daha büyük pencere
+        self.setFixedSize(550, 480)  # Daha büyük pencere
         
         # İkon ayarlarını kaldırıyoruz - dosya olmadığı için
         # Yerine basit bir stil tanımlıyoruz
@@ -286,55 +286,47 @@ class YouTubeDownloader(QtWidgets.QWidget):
                 color: #22223b;
                 font-size: 16px;
                 font-weight: 500;
-                margin-bottom: 4px;
+                margin-bottom: 6px;
             }
         ''')
 
         layout = QtWidgets.QVBoxLayout()
-        layout.setSpacing(16)
-        layout.setContentsMargins(36, 28, 36, 28)
+        layout.setSpacing(24)  # Bileşenler arası boşluğu arttır
+        layout.setContentsMargins(40, 40, 40, 40)  # Kenar boşluklarını arttır
 
+        # Başlık ve URL giriş alanı
+        header_widget = QtWidgets.QWidget()
+        header_layout = QtWidgets.QVBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(10)  # Başlık ve giriş kutusu arasındaki boşluk
+        
         self.url_label = QtWidgets.QLabel('YouTube Video URL:')
-        layout.addWidget(self.url_label)
+        self.url_label.setStyleSheet('font-size: 18px; font-weight: 600;')  # Başlığı daha belirgin yap
+        header_layout.addWidget(self.url_label)
 
         self.url_input = AnimatedLineEdit()
         self.url_input.setPlaceholderText('Video URL\'sini buraya yapıştırın...')
-        layout.addWidget(self.url_input)
+        self.url_input.setMinimumHeight(50)  # URL giriş kutusunu daha büyük yap
+        header_layout.addWidget(self.url_input)
+        
+        layout.addWidget(header_widget)
 
         # Format seçim kısmı yeniden tasarlanıyor
+        format_section = QtWidgets.QWidget()
+        format_section_layout = QtWidgets.QVBoxLayout(format_section)
+        format_section_layout.setContentsMargins(0, 0, 0, 0)
+        format_section_layout.setSpacing(15)  # Başlık ve butonlar arası boşluğu arttır
+        
         format_label = QtWidgets.QLabel("İndirme Formatı")
         format_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(format_label)
+        format_label.setStyleSheet('font-size: 17px; margin-top: 5px;')
+        format_section_layout.addWidget(format_label)
         
         # Format seçenekleri için widget ve layout
         format_widget = QtWidgets.QWidget()
         format_layout = QtWidgets.QHBoxLayout(format_widget)
         format_layout.setContentsMargins(0, 0, 0, 0)
-        format_layout.setSpacing(10)
-        
-        # Butonlar için ortak stil
-        button_style = '''
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                             stop:0 #5c5f8a, stop:1 #4a4e69);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                padding: 12px 0;
-                font-size: 16px;
-                font-weight: bold;
-                margin-top: 10px;
-                min-height: 45px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                             stop:0 #6c63ff, stop:1 #5753d0);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                             stop:0 #4f47c2, stop:1 #4641a7);
-            }
-        '''
+        format_layout.setSpacing(20)  # Format butonları arası boşluğu arttır
         
         # Format seçim butonları için stil
         format_button_style = '''
@@ -342,9 +334,9 @@ class YouTubeDownloader(QtWidgets.QWidget):
                 background: #ffffff;
                 color: #22223b;
                 border: 2px solid #d1d1d1;
-                border-radius: 10px;
-                padding: 8px 0;
-                font-size: 15px;
+                border-radius: 12px;
+                padding: 12px 0;
+                font-size: 16px;
                 font-weight: 500;
             }
             QPushButton:checked {
@@ -364,12 +356,12 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.mp4_btn.setCheckable(True)
         self.mp4_btn.setChecked(True)
         self.mp4_btn.setStyleSheet(format_button_style)
-        self.mp4_btn.setMinimumHeight(40)
+        self.mp4_btn.setMinimumHeight(50)  # Format butonlarını daha büyük yap
         
         self.mp3_btn = QtWidgets.QPushButton("MP3 (Ses)")
         self.mp3_btn.setCheckable(True)
         self.mp3_btn.setStyleSheet(format_button_style)
-        self.mp3_btn.setMinimumHeight(40)
+        self.mp3_btn.setMinimumHeight(50)  # Format butonlarını daha büyük yap
         
         # Buton grubuna ekle
         self.format_group = QtWidgets.QButtonGroup(self)
@@ -381,10 +373,36 @@ class YouTubeDownloader(QtWidgets.QWidget):
         format_layout.addWidget(self.mp4_btn)
         format_layout.addWidget(self.mp3_btn)
         
-        layout.addWidget(format_widget)
+        format_section_layout.addWidget(format_widget)
+        layout.addWidget(format_section)
+
+        # Butonlar için ortak stil
+        button_style = '''
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #5c5f8a, stop:1 #4a4e69);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                padding: 15px 0;
+                font-size: 17px;
+                font-weight: bold;
+                margin-top: 5px;
+                min-height: 55px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #6c63ff, stop:1 #5753d0);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #4f47c2, stop:1 #4641a7);
+            }
+        '''
 
         # İndir butonu ve progress bar için bir yığın
         self.button_stack = QtWidgets.QStackedWidget()
+        self.button_stack.setMinimumHeight(65)  # Minimum yüksekliği ayarla
         
         # İndirme butonu widget
         download_btn_widget = QtWidgets.QWidget()
@@ -405,10 +423,10 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.progress_bar.setStyleSheet('''
             background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
                          stop:0 #6c63ff, stop:1 #5753d0);
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 15px;
         ''')
-        self.progress_bar.setMinimumHeight(45)
+        self.progress_bar.setMinimumHeight(55)
         progress_layout.addWidget(self.progress_bar)
         
         # Yığın widget'a ekle
@@ -418,13 +436,43 @@ class YouTubeDownloader(QtWidgets.QWidget):
         layout.addWidget(self.button_stack)
 
         # Klasörü Aç butonu
+        open_folder_section = QtWidgets.QWidget()
+        open_folder_layout = QtWidgets.QVBoxLayout(open_folder_section)
+        open_folder_layout.setContentsMargins(0, 0, 0, 0)
+        
         self.open_folder_btn = AnimatedButton('İndirme Klasörünü Aç')
-        self.open_folder_btn.setStyleSheet(button_style)
+        self.open_folder_btn.setStyleSheet('''
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #6a6d8b, stop:1 #585b75);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                padding: 15px 0;
+                font-size: 17px;
+                font-weight: bold;
+                min-height: 55px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #7a7d9b, stop:1 #686b85);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #5a5d7b, stop:1 #484b65);
+            }
+        ''')
         self.open_folder_btn.clicked.connect(self.open_download_folder)
-        layout.addWidget(self.open_folder_btn)
+        open_folder_layout.addWidget(self.open_folder_btn)
+        
+        layout.addWidget(open_folder_section)
 
         self.status_label = AnimatedStatusLabel()
         layout.addWidget(self.status_label)
+        
+        # Boşluk ekle
+        spacer = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer)
 
         self.setLayout(layout)
 
