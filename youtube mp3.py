@@ -201,63 +201,17 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.url_input.setPlaceholderText('Video URL\'sini buraya yapıştırın...')
         layout.addWidget(self.url_input)
 
-        # Format seçim kısmı güzelleştirme
-        format_group_box = QtWidgets.QGroupBox("İndirme Formatı")
-        format_group_box.setStyleSheet('''
-            QGroupBox {
-                font-size: 14px;
-                color: #22223b;
-                font-weight: 500;
-                border: 1px solid #d1d1d1;
-                border-radius: 10px;
-                margin-top: 12px;
-                padding-top: 16px;
-                background-color: rgba(255, 255, 255, 0.7);
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                subcontrol-position: top center;
-                padding: 0 10px;
-            }
-            QRadioButton {
-                font-size: 14px;
-                color: #4a4e69;
-                padding: 5px;
-                spacing: 8px;
-            }
-            QRadioButton::indicator {
-                width: 18px;
-                height: 18px;
-            }
-            QRadioButton::indicator:unchecked {
-                background-color: #ffffff;
-                border: 2px solid #d1d1d1;
-                border-radius: 9px;
-            }
-            QRadioButton::indicator:checked {
-                background-color: #6c63ff;
-                border: 2px solid #6c63ff;
-                border-radius: 9px;
-            }
-        ''')
+        # Format seçim kısmı yeniden tasarlanıyor
+        format_label = QtWidgets.QLabel("İndirme Formatı")
+        format_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(format_label)
         
-        format_box_layout = QtWidgets.QHBoxLayout()
-        format_box_layout.setContentsMargins(20, 8, 20, 8)
+        # Format seçenekleri için widget ve layout
+        format_widget = QtWidgets.QWidget()
+        format_layout = QtWidgets.QHBoxLayout(format_widget)
+        format_layout.setContentsMargins(0, 0, 0, 0)
+        format_layout.setSpacing(10)
         
-        self.format_group = QtWidgets.QButtonGroup(self)
-        self.mp4_radio = QtWidgets.QRadioButton('MP4 (Video)')
-        self.mp3_radio = QtWidgets.QRadioButton('MP3 (Ses)')
-        self.mp4_radio.setChecked(True)
-        self.format_group.addButton(self.mp4_radio)
-        self.format_group.addButton(self.mp3_radio)
-        
-        format_box_layout.addWidget(self.mp4_radio)
-        format_box_layout.addWidget(self.mp3_radio)
-        format_box_layout.addStretch()
-        format_group_box.setLayout(format_box_layout)
-        
-        layout.addWidget(format_group_box)
-
         # Butonlar için ortak stil
         button_style = '''
             QPushButton {
@@ -281,6 +235,53 @@ class YouTubeDownloader(QtWidgets.QWidget):
                              stop:0 #4f47c2, stop:1 #4641a7);
             }
         '''
+        
+        # Format seçim butonları için stil
+        format_button_style = '''
+            QPushButton {
+                background: #ffffff;
+                color: #22223b;
+                border: 2px solid #d1d1d1;
+                border-radius: 10px;
+                padding: 8px 0;
+                font-size: 15px;
+                font-weight: 500;
+            }
+            QPushButton:checked {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                             stop:0 #6c63ff, stop:1 #5753d0);
+                border: 2px solid #6c63ff;
+                color: white;
+            }
+            QPushButton:hover:!checked {
+                border: 2px solid #6c63ff;
+                background-color: #f5f5ff;
+            }
+        '''
+        
+        # MP4 ve MP3 seçim butonları
+        self.mp4_btn = QtWidgets.QPushButton("MP4 (Video)")
+        self.mp4_btn.setCheckable(True)
+        self.mp4_btn.setChecked(True)
+        self.mp4_btn.setStyleSheet(format_button_style)
+        self.mp4_btn.setMinimumHeight(40)
+        
+        self.mp3_btn = QtWidgets.QPushButton("MP3 (Ses)")
+        self.mp3_btn.setCheckable(True)
+        self.mp3_btn.setStyleSheet(format_button_style)
+        self.mp3_btn.setMinimumHeight(40)
+        
+        # Buton grubuna ekle
+        self.format_group = QtWidgets.QButtonGroup(self)
+        self.format_group.addButton(self.mp4_btn, 1)
+        self.format_group.addButton(self.mp3_btn, 2)
+        self.format_group.setExclusive(True)
+        
+        # Layout'a butonları ekle
+        format_layout.addWidget(self.mp4_btn)
+        format_layout.addWidget(self.mp3_btn)
+        
+        layout.addWidget(format_widget)
 
         self.download_btn = AnimatedButton('İndir')
         self.download_btn.setStyleSheet(button_style)
@@ -330,7 +331,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
         # outtmpl değerini doğrudan string olarak ver
         outtmpl = os.path.join(self.download_folder, '%(title)s.%(ext)s')
 
-        if self.mp4_radio.isChecked():
+        if self.mp4_btn.isChecked():
             options = {
                 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best',
                 'outtmpl': outtmpl,
