@@ -272,7 +272,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
     def init_ui(self):
         # Pencere ayarları
         self.setWindowTitle('YouTube Video/Ses İndirici')
-        self.setFixedSize(550, 480)  # Daha büyük pencere
+        self.setFixedSize(600, 520)  # Daha da büyük pencere boyutu
         
         # İkon ayarlarını kaldırıyoruz - dosya olmadığı için
         # Yerine basit bir stil tanımlıyoruz
@@ -291,8 +291,8 @@ class YouTubeDownloader(QtWidgets.QWidget):
         ''')
 
         layout = QtWidgets.QVBoxLayout()
-        layout.setSpacing(24)  # Bileşenler arası boşluğu arttır
-        layout.setContentsMargins(40, 40, 40, 40)  # Kenar boşluklarını arttır
+        layout.setSpacing(20)  # Bileşenler arası boşluğu ayarla
+        layout.setContentsMargins(50, 40, 50, 40)  # Kenar boşluklarını arttır
 
         # Başlık ve URL giriş alanı
         header_widget = QtWidgets.QWidget()
@@ -357,11 +357,13 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.mp4_btn.setChecked(True)
         self.mp4_btn.setStyleSheet(format_button_style)
         self.mp4_btn.setMinimumHeight(50)  # Format butonlarını daha büyük yap
+        self.mp4_btn.setMinimumWidth(200)  # Minimum genişlik belirle
         
         self.mp3_btn = QtWidgets.QPushButton("MP3 (Ses)")
         self.mp3_btn.setCheckable(True)
         self.mp3_btn.setStyleSheet(format_button_style)
         self.mp3_btn.setMinimumHeight(50)  # Format butonlarını daha büyük yap
+        self.mp3_btn.setMinimumWidth(200)  # Minimum genişlik belirle
         
         # Buton grubuna ekle
         self.format_group = QtWidgets.QButtonGroup(self)
@@ -411,6 +413,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
         
         self.download_btn = AnimatedButton('İndir')
         self.download_btn.setStyleSheet(button_style)
+        self.download_btn.setMinimumWidth(500)  # Minimum genişlik belirle
         self.download_btn.clicked.connect(self.download)
         download_btn_layout.addWidget(self.download_btn)
         
@@ -427,6 +430,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
             padding: 15px;
         ''')
         self.progress_bar.setMinimumHeight(55)
+        self.progress_bar.setMinimumWidth(500)  # Minimum genişlik belirle
         progress_layout.addWidget(self.progress_bar)
         
         # Yığın widget'a ekle
@@ -441,6 +445,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
         open_folder_layout.setContentsMargins(0, 0, 0, 0)
         
         self.open_folder_btn = AnimatedButton('İndirme Klasörünü Aç')
+        self.open_folder_btn.setMinimumWidth(500)  # Minimum genişlik belirle
         self.open_folder_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
