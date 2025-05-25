@@ -8,102 +8,25 @@ import subprocess
 class AnimatedButton(QtWidgets.QPushButton):
     def __init__(self, text):
         super().__init__(text)
-        # Modern gölge efekti
-        shadow = QtWidgets.QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setColor(QtGui.QColor(0, 0, 0, 50))
-        shadow.setOffset(0, 4)
-        self.setGraphicsEffect(shadow)
-        
-        # Etkileşimli imleç
+        self.setGraphicsEffect(QtWidgets.QGraphicsDropShadowEffect(blurRadius=18, xOffset=0, yOffset=3, color=QtGui.QColor(74, 78, 105, 120)))
         self.setCursor(QtCore.Qt.PointingHandCursor)
-        
-        # Animasyonlar
-        self.anim_press = QtCore.QPropertyAnimation(self, b"geometry")
-        self.anim_press.setDuration(100)
-        
-        self.anim_release = QtCore.QPropertyAnimation(self, b"geometry")
-        self.anim_release.setDuration(100)
-        
-        self.anim_hover = QtCore.QPropertyAnimation(self, b"styleSheet")
-        self.anim_hover.setDuration(200)
-        
-        # Minimum boyut
-        self.setMinimumHeight(45)
+        self.anim = QtCore.QPropertyAnimation(self, b"geometry")
+        self.anim.setDuration(120)
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.Enter:
-            current_style = self.styleSheet()
-            if "background: qlineargradient" in current_style:
-                # İndir butonu için farklı hover efekti
-                new_style = current_style.replace(
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98)",
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6c63ff, stop:1 #8f87ff)"
-                )
-                new_style = new_style.replace(
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b)",
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8f87ff, stop:1 #6c63ff)"
-                )
-            else:
-                # Diğer butonlar için genel hover efekti
-                new_style = current_style
-            
-            self.anim_hover.setStartValue(current_style)
-            self.anim_hover.setEndValue(new_style)
-            self.anim_hover.start()
-            
-            # Hover efekti için boyut animasyonu
+            self.anim.stop()
             rect = self.geometry()
-            self.anim_press.stop()
-            self.anim_press.setStartValue(rect)
-            self.anim_press.setEndValue(QtCore.QRect(rect.x()-2, rect.y()-2, rect.width()+4, rect.height()+4))
-            self.anim_press.start()
-            
+            self.anim.setStartValue(rect)
+            self.anim.setEndValue(QtCore.QRect(rect.x()-2, rect.y()-2, rect.width()+4, rect.height()+4))
+            self.anim.start()
         elif event.type() == QtCore.QEvent.Leave:
-            # Hover efekti bitince eski stil
-            current_style = self.styleSheet()
-            if "background: qlineargradient" in current_style:
-                # İndir butonu için hover olmayan stil
-                new_style = current_style.replace(
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6c63ff, stop:1 #8f87ff)",
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98)"
-                )
-                new_style = new_style.replace(
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8f87ff, stop:1 #6c63ff)",
-                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b)"
-                )
-            else:
-                # Diğer butonlar için genel stil
-                new_style = current_style
-            
-            self.anim_hover.setStartValue(current_style)
-            self.anim_hover.setEndValue(new_style)
-            self.anim_hover.start()
-            
-            # Boyut animasyonu geri dönüşü
+            self.anim.stop()
             rect = self.geometry()
-            self.anim_release.stop()
-            self.anim_release.setStartValue(rect)
-            self.anim_release.setEndValue(QtCore.QRect(rect.x()+2, rect.y()+2, rect.width()-4, rect.height()-4))
-            self.anim_release.start()
-            
-        elif event.type() == QtCore.QEvent.MouseButtonPress:
-            # Basıldığında küçültme efekti
-            rect = self.geometry()
-            self.anim_press.stop()
-            self.anim_press.setStartValue(rect)
-            self.anim_press.setEndValue(QtCore.QRect(rect.x()+3, rect.y()+3, rect.width()-6, rect.height()-6))
-            self.anim_press.start()
-            
-        elif event.type() == QtCore.QEvent.MouseButtonRelease:
-            # Bırakıldığında normale dönme efekti
-            rect = self.geometry()
-            self.anim_release.stop()
-            self.anim_release.setStartValue(rect)
-            self.anim_release.setEndValue(QtCore.QRect(rect.x()-3, rect.y()-3, rect.width()+6, rect.height()+6))
-            self.anim_release.start()
-            
+            self.anim.setStartValue(rect)
+            self.anim.setEndValue(QtCore.QRect(rect.x()+2, rect.y()+2, rect.width()-4, rect.height()-4))
+            self.anim.start()
         return super().eventFilter(obj, event)
 
 class AnimatedLineEdit(QtWidgets.QLineEdit):
@@ -344,15 +267,17 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.download_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98);
-                color: white;
+                color: #fff;
                 border: none;
-                border-radius: 14px;
+                border-radius: 12px;
                 padding: 12px 0;
-                font-size: 16px;
+                font-size: 17px;
                 font-weight: bold;
-                margin-top: 15px;
-                min-height: 45px;
-                letter-spacing: 0.5px;
+                margin-top: 10px;
+                min-height: 38px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #22223b, stop:1 #4a4e69);
             }
         ''')
         self.download_btn.clicked.connect(self.download)
@@ -363,15 +288,17 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.open_folder_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b);
-                color: white;
+                color: #fff;
                 border: none;
-                border-radius: 14px;
+                border-radius: 12px;
                 padding: 10px 0;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: bold;
-                margin-top: 10px;
-                min-height: 40px;
-                letter-spacing: 0.5px;
+                margin-top: 5px;
+                min-height: 34px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #22223b);
             }
         ''')
         self.open_folder_btn.clicked.connect(self.open_download_folder)
