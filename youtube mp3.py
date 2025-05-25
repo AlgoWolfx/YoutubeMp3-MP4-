@@ -160,6 +160,103 @@ class AnimatedStatusLabel(QtWidgets.QLabel):
             self.setFixedHeight(0)
             super().setText("")
 
+class DownloadProgressBar(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Layout oluştur
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(5)
+        
+        # Durum mesajı
+        self.status_label = QtWidgets.QLabel("İndiriliyor...")
+        self.status_label.setStyleSheet('''
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+        ''')
+        self.status_label.setAlignment(QtCore.Qt.AlignCenter)
+        
+        # İlerleme çubuğu
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setMinimumHeight(6)
+        self.progress_bar.setMaximumHeight(6)
+        self.progress_bar.setStyleSheet('''
+            QProgressBar {
+                background-color: rgba(255, 255, 255, 0.3);
+                border: none;
+                border-radius: 3px;
+            }
+            QProgressBar::chunk {
+                background-color: #ffffff;
+                border-radius: 3px;
+            }
+        ''')
+        
+        # Detay metni
+        self.detail_label = QtWidgets.QLabel("")
+        self.detail_label.setStyleSheet('''
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+        ''')
+        self.detail_label.setAlignment(QtCore.Qt.AlignCenter)
+        
+        # Bileşenleri ekle
+        self.layout.addWidget(self.status_label)
+        self.layout.addWidget(self.progress_bar)
+        self.layout.addWidget(self.detail_label)
+        
+        # İlerleme animasyonu için timer
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.update_progress)
+        self.progress_value = 0
+        self.is_indeterminate = True
+        
+    def start_progress(self, indeterminate=True):
+        """İlerleme çubuğunu başlat"""
+        self.is_indeterminate = indeterminate
+        self.progress_value = 0
+        self.progress_bar.setValue(0)
+        if indeterminate:
+            self.timer.start(50)
+        self.show()
+        
+    def update_progress(self, value=None):
+        """İlerleme çubuğunu güncelle"""
+        if value is not None and not self.is_indeterminate:
+            self.progress_value = value
+            self.progress_bar.setValue(value)
+        elif self.is_indeterminate:
+            self.progress_value = (self.progress_value + 1) % 101
+            self.progress_bar.setValue(self.progress_value)
+    
+    def set_status(self, text):
+        """Durum metnini ayarla"""
+        self.status_label.setText(text)
+        
+    def set_detail(self, text):
+        """Detay metnini ayarla"""
+        self.detail_label.setText(text)
+        
+    def finish(self, success=True):
+        """İşlemi tamamla"""
+        self.timer.stop()
+        if success:
+            self.progress_bar.setValue(100)
+            self.set_status("İndirme tamamlandı!")
+            self.set_detail("")
+        else:
+            self.set_status("İndirme başarısız oldu")
+            
+    def hide_progress(self):
+        """İlerleme çubuğunu gizle"""
+        self.timer.stop()
+        self.hide()
+
 class YouTubeDownloader(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -168,11 +265,14 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.download_folder = os.path.join(os.path.expanduser('~'), 'Desktop', 'YouTubeIndirilenler')
         if not os.path.exists(self.download_folder):
             os.makedirs(self.download_folder)
+        
+        # İndirme durumu için flag
+        self.is_downloading = False
 
     def init_ui(self):
         # Pencere ayarları
         self.setWindowTitle('YouTube Video/Ses İndirici')
-        self.setFixedSize(480, 380)  # Biraz daha büyük pencere
+        self.setFixedSize(480, 400)  # Biraz daha büyük pencere
         
         # İkon ayarlarını kaldırıyoruz - dosya olmadığı için
         # Yerine basit bir stil tanımlıyoruz
@@ -283,10 +383,39 @@ class YouTubeDownloader(QtWidgets.QWidget):
         
         layout.addWidget(format_widget)
 
+        # İndir butonu ve progress bar için bir yığın
+        self.button_stack = QtWidgets.QStackedWidget()
+        
+        # İndirme butonu widget
+        download_btn_widget = QtWidgets.QWidget()
+        download_btn_layout = QtWidgets.QVBoxLayout(download_btn_widget)
+        download_btn_layout.setContentsMargins(0, 0, 0, 0)
+        
         self.download_btn = AnimatedButton('İndir')
         self.download_btn.setStyleSheet(button_style)
         self.download_btn.clicked.connect(self.download)
-        layout.addWidget(self.download_btn)
+        download_btn_layout.addWidget(self.download_btn)
+        
+        # İlerleme çubuğu widget
+        progress_widget = QtWidgets.QWidget()
+        progress_layout = QtWidgets.QVBoxLayout(progress_widget)
+        progress_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.progress_bar = DownloadProgressBar()
+        self.progress_bar.setStyleSheet('''
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                         stop:0 #6c63ff, stop:1 #5753d0);
+            border-radius: 10px;
+            padding: 12px;
+        ''')
+        self.progress_bar.setMinimumHeight(45)
+        progress_layout.addWidget(self.progress_bar)
+        
+        # Yığın widget'a ekle
+        self.button_stack.addWidget(download_btn_widget)
+        self.button_stack.addWidget(progress_widget)
+        
+        layout.addWidget(self.button_stack)
 
         # Klasörü Aç butonu
         self.open_folder_btn = AnimatedButton('İndirme Klasörünü Aç')
@@ -316,6 +445,9 @@ class YouTubeDownloader(QtWidgets.QWidget):
             self.status_label.setText('İndirme klasörü bulunamadı!')
 
     def download(self):
+        if self.is_downloading:
+            return
+            
         url = self.url_input.text().strip()
         if not url:
             self.status_label.setText('Lütfen bir URL girin.')
@@ -324,12 +456,43 @@ class YouTubeDownloader(QtWidgets.QWidget):
         # İndirme klasörünün var olduğundan emin ol
         if not os.path.exists(self.download_folder):
             os.makedirs(self.download_folder)
-
-        self.status_label.setText('İndiriliyor...')
+            
+        # İndirme durumunu güncelle
+        self.is_downloading = True
+        
+        # İlerleme çubuğunu göster
+        self.button_stack.setCurrentIndex(1)
+        self.progress_bar.start_progress()
+        self.progress_bar.set_status("İndiriliyor...")
+        
+        if self.mp4_btn.isChecked():
+            self.progress_bar.set_detail("Video indiriliyor ve işleniyor...")
+        else:
+            self.progress_bar.set_detail("Ses indiriliyor ve MP3'e dönüştürülüyor...")
+            
         QtWidgets.QApplication.processEvents()
 
         # outtmpl değerini doğrudan string olarak ver
         outtmpl = os.path.join(self.download_folder, '%(title)s.%(ext)s')
+
+        # İndirme ilerlemesini takip etmek için özel hooks tanımla
+        def my_hook(d):
+            if d['status'] == 'downloading':
+                if 'downloaded_bytes' in d and 'total_bytes' in d and d['total_bytes'] > 0:
+                    percent = d['downloaded_bytes'] / d['total_bytes'] * 100
+                    self.progress_bar.update_progress(int(percent))
+                    self.progress_bar.set_detail(f"İndiriliyor: %{int(percent)}")
+                elif 'downloaded_bytes' in d and 'total_bytes_estimate' in d and d['total_bytes_estimate'] > 0:
+                    percent = d['downloaded_bytes'] / d['total_bytes_estimate'] * 100
+                    self.progress_bar.update_progress(int(percent))
+                    self.progress_bar.set_detail(f"İndiriliyor: %{int(percent)} (tahmini)")
+            elif d['status'] == 'finished':
+                self.progress_bar.update_progress(100)
+                if self.mp4_btn.isChecked():
+                    self.progress_bar.set_detail("Video işleniyor...")
+                else:
+                    self.progress_bar.set_detail("MP3'e dönüştürülüyor...")
+                QtWidgets.QApplication.processEvents()
 
         if self.mp4_btn.isChecked():
             options = {
@@ -338,6 +501,7 @@ class YouTubeDownloader(QtWidgets.QWidget):
                 'merge_output_format': 'mp4',
                 'noplaylist': True,
                 'ignoreerrors': True,
+                'progress_hooks': [my_hook],
             }
         else:
             options = {
@@ -350,16 +514,44 @@ class YouTubeDownloader(QtWidgets.QWidget):
                 'outtmpl': outtmpl,
                 'noplaylist': True,
                 'ignoreerrors': True,
+                'progress_hooks': [my_hook],
             }
+            
         try:
             with YoutubeDL(options) as ydl:
                 result = ydl.download([url])
-            self.status_label.setText('İndirme tamamlandı!')
+            self.progress_bar.finish(True)
+            QtWidgets.QApplication.processEvents()
+            QtCore.QTimer.singleShot(2000, self.download_finished)
         except Exception as e:
+            self.progress_bar.finish(False)
             if 'Requested format is not available' in str(e):
-                self.status_label.setText('Seçilen formatta video bulunamadı. Lütfen farklı bir video veya format deneyin.')
+                self.progress_bar.set_detail('Seçilen formatta video bulunamadı.')
             else:
-                self.status_label.setText(f'Hata: {str(e)}')
+                self.progress_bar.set_detail(f'Hata: {str(e)}')
+            QtCore.QTimer.singleShot(2000, self.download_failed)
+            
+    def download_finished(self):
+        """İndirme başarıyla tamamlandığında çağrılır"""
+        # İndirme durumunu güncelle
+        self.is_downloading = False
+        
+        # Butonları göster
+        self.button_stack.setCurrentIndex(0)
+        
+        # Durumu güncelle
+        self.status_label.setText('İndirme tamamlandı!')
+        
+    def download_failed(self):
+        """İndirme başarısız olduğunda çağrılır"""
+        # İndirme durumunu güncelle
+        self.is_downloading = False
+        
+        # Butonları göster
+        self.button_stack.setCurrentIndex(0)
+        
+        # Durumu güncelle
+        self.status_label.setText('İndirme başarısız oldu!')
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
