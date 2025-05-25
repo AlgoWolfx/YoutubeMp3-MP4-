@@ -8,59 +8,234 @@ import subprocess
 class AnimatedButton(QtWidgets.QPushButton):
     def __init__(self, text):
         super().__init__(text)
-        self.setGraphicsEffect(QtWidgets.QGraphicsDropShadowEffect(blurRadius=18, xOffset=0, yOffset=3, color=QtGui.QColor(74, 78, 105, 120)))
+        # Modern gölge efekti
+        shadow = QtWidgets.QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QtGui.QColor(0, 0, 0, 50))
+        shadow.setOffset(0, 4)
+        self.setGraphicsEffect(shadow)
+        
+        # Etkileşimli imleç
         self.setCursor(QtCore.Qt.PointingHandCursor)
-        self.anim = QtCore.QPropertyAnimation(self, b"geometry")
-        self.anim.setDuration(120)
+        
+        # Animasyonlar
+        self.anim_press = QtCore.QPropertyAnimation(self, b"geometry")
+        self.anim_press.setDuration(100)
+        
+        self.anim_release = QtCore.QPropertyAnimation(self, b"geometry")
+        self.anim_release.setDuration(100)
+        
+        self.anim_hover = QtCore.QPropertyAnimation(self, b"styleSheet")
+        self.anim_hover.setDuration(200)
+        
+        # Minimum boyut
+        self.setMinimumHeight(45)
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.Enter:
-            self.anim.stop()
+            current_style = self.styleSheet()
+            if "background: qlineargradient" in current_style:
+                # İndir butonu için farklı hover efekti
+                new_style = current_style.replace(
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98)",
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6c63ff, stop:1 #8f87ff)"
+                )
+                new_style = new_style.replace(
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b)",
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8f87ff, stop:1 #6c63ff)"
+                )
+            else:
+                # Diğer butonlar için genel hover efekti
+                new_style = current_style
+            
+            self.anim_hover.setStartValue(current_style)
+            self.anim_hover.setEndValue(new_style)
+            self.anim_hover.start()
+            
+            # Hover efekti için boyut animasyonu
             rect = self.geometry()
-            self.anim.setStartValue(rect)
-            self.anim.setEndValue(QtCore.QRect(rect.x()-2, rect.y()-2, rect.width()+4, rect.height()+4))
-            self.anim.start()
+            self.anim_press.stop()
+            self.anim_press.setStartValue(rect)
+            self.anim_press.setEndValue(QtCore.QRect(rect.x()-2, rect.y()-2, rect.width()+4, rect.height()+4))
+            self.anim_press.start()
+            
         elif event.type() == QtCore.QEvent.Leave:
-            self.anim.stop()
+            # Hover efekti bitince eski stil
+            current_style = self.styleSheet()
+            if "background: qlineargradient" in current_style:
+                # İndir butonu için hover olmayan stil
+                new_style = current_style.replace(
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6c63ff, stop:1 #8f87ff)",
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98)"
+                )
+                new_style = new_style.replace(
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8f87ff, stop:1 #6c63ff)",
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b)"
+                )
+            else:
+                # Diğer butonlar için genel stil
+                new_style = current_style
+            
+            self.anim_hover.setStartValue(current_style)
+            self.anim_hover.setEndValue(new_style)
+            self.anim_hover.start()
+            
+            # Boyut animasyonu geri dönüşü
             rect = self.geometry()
-            self.anim.setStartValue(rect)
-            self.anim.setEndValue(QtCore.QRect(rect.x()+2, rect.y()+2, rect.width()-4, rect.height()-4))
-            self.anim.start()
+            self.anim_release.stop()
+            self.anim_release.setStartValue(rect)
+            self.anim_release.setEndValue(QtCore.QRect(rect.x()+2, rect.y()+2, rect.width()-4, rect.height()-4))
+            self.anim_release.start()
+            
+        elif event.type() == QtCore.QEvent.MouseButtonPress:
+            # Basıldığında küçültme efekti
+            rect = self.geometry()
+            self.anim_press.stop()
+            self.anim_press.setStartValue(rect)
+            self.anim_press.setEndValue(QtCore.QRect(rect.x()+3, rect.y()+3, rect.width()-6, rect.height()-6))
+            self.anim_press.start()
+            
+        elif event.type() == QtCore.QEvent.MouseButtonRelease:
+            # Bırakıldığında normale dönme efekti
+            rect = self.geometry()
+            self.anim_release.stop()
+            self.anim_release.setStartValue(rect)
+            self.anim_release.setEndValue(QtCore.QRect(rect.x()-3, rect.y()-3, rect.width()+6, rect.height()+6))
+            self.anim_release.start()
+            
         return super().eventFilter(obj, event)
 
 class AnimatedLineEdit(QtWidgets.QLineEdit):
     def __init__(self):
         super().__init__()
-        self.setGraphicsEffect(QtWidgets.QGraphicsDropShadowEffect(blurRadius=12, xOffset=0, yOffset=2, color=QtGui.QColor(154, 140, 152, 80)))
-        self.setStyleSheet('background: #fff; border: 2px solid #9a8c98; border-radius: 10px; padding: 8px; font-size: 15px;')
-        self.setMinimumHeight(32)
+        # Daha yumuşak ve modern gölge efekti
+        shadow = QtWidgets.QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QtGui.QColor(100, 100, 100, 80))
+        shadow.setOffset(0, 2)
+        self.setGraphicsEffect(shadow)
+        
+        # Temel stiller
+        self.setMinimumHeight(45)  # Daha büyük input alanı
+        self.setFont(QtGui.QFont("Segoe UI", 10))  # Daha iyi font
+        
+        # URL ikonu ekle
+        self.url_icon = QtGui.QIcon.fromTheme("edit-link", QtGui.QIcon.fromTheme("insert-link"))
+        self.action = self.addAction(self.url_icon, QtWidgets.QLineEdit.LeadingPosition)
+        
+        # Ana stil ayarları
+        self.setStyleSheet('''
+            QLineEdit {
+                background-color: #ffffff;
+                border: 2px solid #d1d1d1;
+                border-radius: 12px;
+                padding: 8px 12px 8px 40px;  /* Sağdan/soldan ilave padding */
+                font-size: 10pt;
+                selection-background-color: #6c63ff;
+                selection-color: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #6c63ff;
+                background-color: #f9f9ff;
+            }
+        ''')
+        
+        # Animasyon hazırlık
         self.anim = QtCore.QPropertyAnimation(self, b"styleSheet")
+        self.anim.setDuration(200)
         self.installEventFilter(self)
+        
+        # Temizleme düğmesi ekle
+        self.setClearButtonEnabled(True)
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.FocusIn:
-            self.setStyleSheet('background: #f8edeb; border: 2px solid #c9184a; border-radius: 10px; padding: 8px; font-size: 15px;')
+            self.anim.stop()
+            self.anim.setStartValue(self.styleSheet())
+            self.anim.setEndValue('''
+                QLineEdit {
+                    background-color: #f9f9ff;
+                    border: 2px solid #6c63ff;
+                    border-radius: 12px;
+                    padding: 8px 12px 8px 40px;
+                    font-size: 10pt;
+                    selection-background-color: #6c63ff;
+                    selection-color: white;
+                }
+                QLineEdit:focus {
+                    border: 2px solid #6c63ff;
+                    background-color: #f9f9ff;
+                }
+            ''')
+            self.anim.start()
         elif event.type() == QtCore.QEvent.FocusOut:
-            self.setStyleSheet('background: #fff; border: 2px solid #9a8c98; border-radius: 10px; padding: 8px; font-size: 15px;')
+            self.anim.stop()
+            self.anim.setStartValue(self.styleSheet())
+            self.anim.setEndValue('''
+                QLineEdit {
+                    background-color: #ffffff;
+                    border: 2px solid #d1d1d1;
+                    border-radius: 12px;
+                    padding: 8px 12px 8px 40px;
+                    font-size: 10pt;
+                    selection-background-color: #6c63ff;
+                    selection-color: white;
+                }
+                QLineEdit:focus {
+                    border: 2px solid #6c63ff;
+                    background-color: #f9f9ff;
+                }
+            ''')
+            self.anim.start()
         return super().eventFilter(obj, event)
 
 class AnimatedStatusLabel(QtWidgets.QLabel):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet('color: #c9184a; font-size: 14px; margin-top: 10px;')
-        self.setGraphicsEffect(QtWidgets.QGraphicsDropShadowEffect(blurRadius=8, xOffset=0, yOffset=1, color=QtGui.QColor(201, 24, 74, 80)))
+        # Modern stil
+        self.setStyleSheet('''
+            color: #6c63ff; 
+            font-size: 14px; 
+            margin-top: 10px;
+            font-weight: 500;
+            padding: 8px;
+            background-color: rgba(108, 99, 255, 0.1);
+            border-radius: 8px;
+        ''')
+        
+        # Gölge efekti
+        shadow = QtWidgets.QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(10)
+        shadow.setColor(QtGui.QColor(108, 99, 255, 70))
+        shadow.setOffset(0, 2)
+        self.setGraphicsEffect(shadow)
+        
+        # Animasyon
         self.anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
         self.anim.setDuration(300)
         self.setWindowOpacity(1.0)
+        
+        # Başlangıçta görünmez
+        self.setText("")
+        self.setFixedHeight(0)
+        self.setAlignment(QtCore.Qt.AlignCenter)
 
     def setText(self, text):
         self.anim.stop()
-        self.setWindowOpacity(0.0)
-        super().setText(text)
-        self.anim.setStartValue(0.0)
-        self.anim.setEndValue(1.0)
-        self.anim.start()
+        
+        if text:
+            # Mesaj varsa göster
+            self.setWindowOpacity(0.0)
+            super().setText(text)
+            self.setFixedHeight(40)  # Yüksekliği ayarla
+            self.anim.setStartValue(0.0)
+            self.anim.setEndValue(1.0)
+            self.anim.start()
+        else:
+            # Mesaj yoksa gizle
+            self.setFixedHeight(0)
+            super().setText("")
 
 class YouTubeDownloader(QtWidgets.QWidget):
     def __init__(self):
@@ -72,20 +247,47 @@ class YouTubeDownloader(QtWidgets.QWidget):
             os.makedirs(self.download_folder)
 
     def init_ui(self):
+        # Pencere ayarları
         self.setWindowTitle('YouTube Video/Ses İndirici')
-        self.setFixedSize(460, 340)  # Yüksekliği artırdık
+        self.setFixedSize(480, 380)  # Biraz daha büyük pencere
+        
+        # İkon ayarlarını kaldırıyoruz - dosya olmadığı için
+        # Yerine basit bir stil tanımlıyoruz
+        
         self.setStyleSheet('''
             QWidget {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f4f6fb, stop:1 #e9ecef);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f8f9fa, stop:1 #e9ecef);
+                font-family: 'Segoe UI', Arial;
             }
             QLabel {
                 color: #22223b;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 500;
+                margin-bottom: 4px;
             }
             QRadioButton {
                 font-size: 14px;
                 color: #4a4e69;
+                padding: 5px;
+                spacing: 8px;
+            }
+            QRadioButton::indicator {
+                width: 18px;
+                height: 18px;
+            }
+            QRadioButton::indicator:unchecked {
+                background-color: #ffffff;
+                border: 2px solid #d1d1d1;
+                border-radius: 9px;
+            }
+            QRadioButton::indicator:checked {
+                background-color: #6c63ff;
+                border: 2px solid #6c63ff;
+                border-radius: 9px;
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAgM0w1LjUgOC41TDIuNSA2IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==);
+            }
+            QRadioButton:hover {
+                color: #6c63ff;
             }
         ''')
 
@@ -93,41 +295,64 @@ class YouTubeDownloader(QtWidgets.QWidget):
         layout.setSpacing(16)
         layout.setContentsMargins(36, 28, 36, 28)
 
-        self.url_label = QtWidgets.QLabel('YouTube URL:')
+        self.url_label = QtWidgets.QLabel('YouTube Video URL:')
         layout.addWidget(self.url_label)
 
         self.url_input = AnimatedLineEdit()
-        self.url_input.setPlaceholderText('https://www.youtube.com/watch?v=...')
+        self.url_input.setPlaceholderText('Video URL\'sini buraya yapıştırın...')
         layout.addWidget(self.url_input)
 
+        # Format seçim kısmı güzelleştirme
+        format_layout = QtWidgets.QHBoxLayout()
+        format_group_box = QtWidgets.QGroupBox("İndirme Formatı")
+        format_group_box.setStyleSheet('''
+            QGroupBox {
+                font-size: 14px;
+                color: #22223b;
+                font-weight: 500;
+                border: 1px solid #d1d1d1;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding-top: 16px;
+                background-color: rgba(255, 255, 255, 0.6);
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 10px;
+            }
+        ''')
+        
+        format_box_layout = QtWidgets.QHBoxLayout()
+        format_box_layout.setContentsMargins(15, 5, 15, 5)
+        
         self.format_group = QtWidgets.QButtonGroup(self)
         self.mp4_radio = QtWidgets.QRadioButton('MP4 (Video)')
         self.mp3_radio = QtWidgets.QRadioButton('MP3 (Ses)')
         self.mp4_radio.setChecked(True)
         self.format_group.addButton(self.mp4_radio)
         self.format_group.addButton(self.mp3_radio)
-
-        format_layout = QtWidgets.QHBoxLayout()
-        format_layout.addWidget(self.mp4_radio)
-        format_layout.addWidget(self.mp3_radio)
-        format_layout.addStretch()
-        layout.addLayout(format_layout)
+        
+        format_box_layout.addWidget(self.mp4_radio)
+        format_box_layout.addWidget(self.mp3_radio)
+        format_box_layout.addStretch()
+        format_group_box.setLayout(format_box_layout)
+        
+        layout.addWidget(format_group_box)
 
         self.download_btn = AnimatedButton('İndir')
         self.download_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #9a8c98);
-                color: #fff;
+                color: white;
                 border: none;
-                border-radius: 12px;
+                border-radius: 14px;
                 padding: 12px 0;
-                font-size: 17px;
+                font-size: 16px;
                 font-weight: bold;
-                margin-top: 10px;
-                min-height: 38px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #22223b, stop:1 #4a4e69);
+                margin-top: 15px;
+                min-height: 45px;
+                letter-spacing: 0.5px;
             }
         ''')
         self.download_btn.clicked.connect(self.download)
@@ -138,17 +363,15 @@ class YouTubeDownloader(QtWidgets.QWidget):
         self.open_folder_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9a8c98, stop:1 #22223b);
-                color: #fff;
+                color: white;
                 border: none;
-                border-radius: 12px;
+                border-radius: 14px;
                 padding: 10px 0;
-                font-size: 16px;
+                font-size: 15px;
                 font-weight: bold;
-                margin-top: 5px;
-                min-height: 34px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a4e69, stop:1 #22223b);
+                margin-top: 10px;
+                min-height: 40px;
+                letter-spacing: 0.5px;
             }
         ''')
         self.open_folder_btn.clicked.connect(self.open_download_folder)
