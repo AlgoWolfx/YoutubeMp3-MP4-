@@ -1,66 +1,53 @@
-# YouTube MP3/MP4 İndirici
+# YouTube MP3/MP4 Downloader
 
-Modern ve kullanıcı dostu bir YouTube video ve ses indirme uygulaması.
+A desktop app for downloading YouTube videos as MP4 or extracting audio as MP3, built with a simple PyQt5 GUI.
 
-![YouTube İndirici Ekran Görüntüsü](screenshot.png)
+## Features
 
-## Özellikler
+- Download YouTube videos as MP4
+- Extract and download audio as MP3
+- Modern, animated user interface
+- One-click access to the downloads folder
+- Status updates and error notifications
 
-- YouTube videolarını MP4 formatında indirme
-- YouTube videolarını MP3 (ses) formatında indirme
-- Animasyonlu ve modern kullanıcı arayüzü
-- İndirilen dosyalar için kolay erişim butonu
-- Hata bildirimleri ve durum güncellemeleri
-
-## Gereksinimler
+## Requirements
 
 - Python 3.6+
 - PyQt5
 - yt-dlp
-- FFmpeg (MP3 dönüşümü için)
+- FFmpeg (required for MP3 conversion)
 
-## Kurulum
+## Installation
 
-1. Depoyu klonlayın:
-   ```
-   git clone https://github.com/KULLANICIADINIZ/youtube-mp3-mp4-indir.git
-   cd youtube-mp3-mp4-indir
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/AlgoWolfx/YoutubeMp3-MP4-.git
+   cd YoutubeMp3-MP4-
    ```
 
-2. Gerekli kütüphaneleri yükleyin:
-   ```
+2. Install dependencies:
+   ```bash
    pip install PyQt5 yt-dlp
    ```
 
-3. FFmpeg'i yükleyin:
-   - Windows: [FFmpeg İndirme Sayfası](https://ffmpeg.org/download.html)
+3. Install FFmpeg:
+   - Windows: [FFmpeg downloads](https://ffmpeg.org/download.html)
    - Mac: `brew install ffmpeg`
    - Linux: `sudo apt-get install ffmpeg`
 
-## Kullanım
+## Usage
 
-1. Uygulamayı başlatın:
-   ```
+1. Start the app:
+   ```bash
    python "youtube mp3.py"
    ```
+2. Paste a YouTube video URL
+3. Choose MP4 (video) or MP3 (audio)
+4. Click "Download"
+5. Once finished, use "Open Downloads Folder" to access your files
 
-2. YouTube video URL'sini girin
-3. MP4 (video) veya MP3 (ses) formatını seçin
-4. "İndir" butonuna tıklayın
-5. İndirme tamamlandığında "İndirme Klasörünü Aç" butonuna tıklayarak dosyalara erişebilirsiniz
+Downloaded files are saved to a `YouTubeDownloads` folder on the desktop.
 
-## İndirme Klasörü
+## License
 
-İndirilen dosyalar masaüstündeki "YouTubeIndirilenler" klasörüne kaydedilir.
-
-## Lisans
-
-Bu proje açık kaynak olarak MIT lisansı altında yayınlanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
-
-## Katkıda Bulunma
-
-1. Bu depoyu fork edin
-2. Kendi branch'inizi oluşturun (`git checkout -b yeni-ozellik`)
-3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik: açıklama'`)
-4. Branch'inizi push edin (`git push origin yeni-ozellik`)
-5. Bir Pull Request oluşturun 
+Released under the MIT License. See [LICENSE](LICENSE) for details.
